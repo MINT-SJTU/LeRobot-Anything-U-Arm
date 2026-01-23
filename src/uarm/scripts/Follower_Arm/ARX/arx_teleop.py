@@ -35,7 +35,7 @@ class ServoReader:
         return self.ser.read_all().decode('ascii', errors='ignore')
 
     def pwm_to_angle(response_str, servo_num, pwm_min=500, pwm_max=2500, angle_range=270):
-        pattern = f"#{servo_num:03d}P(\\d+)"
+        pattern = f"#{servo_num:03d}P(\\d{{4}})"
         match = re.search(pattern, response_str)
         if not match:
             return None

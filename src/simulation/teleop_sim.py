@@ -175,7 +175,7 @@ class ServoTeleoperatorSim:
         Returns:
             Angle value, returns None if parsing fails
         """
-        pattern = f"#{servo_num:03d}P(\\d+)"
+        pattern = f"#{servo_num:03d}P(\\d{{4}})"
         match = re.search(pattern, response_str)
         if not match:
             return None
