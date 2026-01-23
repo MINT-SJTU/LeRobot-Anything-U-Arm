@@ -145,7 +145,7 @@ class ServoTeleoperatorSim:
             self.send_command("#000PCSK!")
             self.send_command(f'#{i:03d}PULK!')
             response = self.send_command(f'#{i:03d}PRAD!')
-            angle = self.pwm_to_angle(response.strip())
+            angle = self.pwm_to_angle(response.strip(), i)
             self.zero_angles[i] = angle if angle is not None else 0.0
         print("[INFO] Servo initial angle calibration completed")
 
@@ -163,8 +163,7 @@ class ServoTeleoperatorSim:
         response = self.ser.read_all()
         return response.decode('ascii', errors='ignore') if response else ""
     
-    def pwm_to_angle(self, response_str: str, pwm_min: int = 500, 
-                     pwm_max: int = 2500, angle_range: float = 270):
+    def pwm_to_angle(response_str, servo_num, pwm_min=500, pwm_max=2500, angle_range=270):
         """Convert PWM response to angle
         
         Args:
@@ -176,7 +175,8 @@ class ServoTeleoperatorSim:
         Returns:
             Angle value, returns None if parsing fails
         """
-        match = re.search(r'P(\d{4})', response_str)
+        pattern = f"#{servo_num:03d}P(\\d+)"
+        match = re.search(pattern, response_str)
         if not match:
             return None
         pwm_val = int(match.group(1))
@@ -368,7 +368,7 @@ class ServoTeleoperatorSim:
             # Read all joint angles
             for i in range(num_joints):
                 response = self.send_command(f'#{i:03d}PRAD!')
-                angle = self.pwm_to_angle(response.strip())
+                angle = self.pwm_to_angle(response.strip(), i)
                 if angle is not None:
                     # Calculate angle relative to zero position
                     new_angle = angle - self.zero_angles[i]

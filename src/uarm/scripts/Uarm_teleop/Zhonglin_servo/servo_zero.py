@@ -18,8 +18,9 @@ def send_command(ser, cmd):
     # print(f"Raw response (binary): {response}")  # Print raw binary response
     return response.decode('ascii', errors='ignore')
 
-def pwm_to_angle(response_str, pwm_min=500, pwm_max=2500, angle_range=270):
-    match = re.search(r'P(\d{4})', response_str)
+def pwm_to_angle(response_str, servo_num, pwm_min=500, pwm_max=2500, angle_range=270):
+    pattern = f"#{servo_num:03d}P(\\d+)"
+    match = re.search(pattern, response_str)
     if not match:
         return None
     pwm_val = int(match.group(1))
@@ -64,7 +65,7 @@ def main():
             for i in range(7):
                 cmd = f'#00{i}PRAD!'
                 response = send_command(ser, cmd)
-                angle = pwm_to_angle(response.strip())
+                angle = pwm_to_angle(response.strip(), i)
                 angle_pos[i] = angle
                 if angle is not None:
                     angle_offset = angle - zero_angles[i]+init_qpos[i]

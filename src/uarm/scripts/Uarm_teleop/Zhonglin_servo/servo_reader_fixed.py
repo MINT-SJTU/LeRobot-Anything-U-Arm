@@ -27,8 +27,9 @@ class ServoReaderNode:
         time.sleep(0.008)
         return self.ser.read_all().decode('ascii', errors='ignore')
 
-    def pwm_to_angle(self, response_str, pwm_min=500, pwm_max=2500, angle_range=270):
-        match = re.search(r'P(\d{4})', response_str)
+    def pwm_to_angle(response_str, servo_num, pwm_min=500, pwm_max=2500, angle_range=270):
+        pattern = f"#{servo_num:03d}P(\\d+)"
+        match = re.search(pattern, response_str)
         if not match:
             return None
         pwm_val = int(match.group(1))
@@ -42,7 +43,7 @@ class ServoReaderNode:
             self.send_command("#000PCSK!")
             self.send_command(f'#{i:03d}PULK!')
             response = self.send_command(f'#{i:03d}PRAD!')
-            angle = self.pwm_to_angle(response.strip())
+            angle = self.pwm_to_angle(response.strip(), i)
             self.zero_angles[i] = angle if angle is not None else 0.0
         rospy.loginfo("Servo initial angle calibration completed")
 
@@ -55,7 +56,7 @@ class ServoReaderNode:
         while not rospy.is_shutdown():
             for i in self.valid_servos:  # Only read valid servos
                 response = self.send_command(f'#{i:03d}PRAD!')
-                angle = self.pwm_to_angle(response.strip())
+                angle = self.pwm_to_angle(response.strip(), i)
                 if angle is not None:
                     new_angle = angle - self.zero_angles[i]
                     if abs(new_angle - target_angle_offset[i]) > step_size:

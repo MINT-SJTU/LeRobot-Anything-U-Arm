@@ -33,8 +33,9 @@ class XArmTeleopNode:
         self.arm_qpos = self.deg_angle_to_rad_xarm(angle_offset)
 
 
-    def pwm_to_angle(self, response_str, pwm_min=500, pwm_max=2500, angle_range=270):
-        match = re.search(r'P(\d{4})', response_str)
+    def pwm_to_angle(response_str, servo_num, pwm_min=500, pwm_max=2500, angle_range=270):
+        pattern = f"#{servo_num:03d}P(\\d+)"
+        match = re.search(pattern, response_str)
         if not match:
             return None
         pwm_val = int(match.group(1))
